@@ -40,15 +40,22 @@ class SiaProjectsSpider(scrapy.Spider):
         projectID = response.xpath('//table/tr[th/text()="Dossier"]/td/text()').get()
         status = response.xpath('//table/tr[th/text()="Status"]/td/text()').get()
         paymentAmount = response.xpath('//table/tr[th/text()="Subsidie"]/td/text()').get()
-        startDate = response.xpath('//table/tr[th/text()="Startdatum"]/td/text()').get()
-        startDate = self.parse_date(startDate)
-        endDate = response.xpath('//table/tr[th/text()="Einddatum"]/td/text()').get()
-        endDate = self.parse_date(endDate)
+        try:
+            startDate = response.xpath('//table/tr[th/text()="Startdatum"]/td/text()').get()
+            startDate = self.parse_date(startDate)
+        except:
+            startDate = None
+
+        try:
+            endDate = response.xpath('//table/tr[th/text()="Einddatum"]/td/text()').get()
+            endDate = self.parse_date(endDate)
+        except:
+            endDate = None
         fundingScheme = response.xpath('//table/tr[th/text()="Regeling"]/td/text()').get()
 
         contact = {}
         el = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="hogeschool"]/span')
-        if el.xpath('/a'):
+        if el.xpath('a'):
             contact['org'] = el.xpath('a/text()').get().strip()
             contact['org_url'] = el.xpath('a/@href').get()
         else:
@@ -60,25 +67,29 @@ class SiaProjectsSpider(scrapy.Spider):
             contact['email'] = el.xpath('a/@data-meel').get().replace('|', '@')
 
         participants = []
-        for li in response.xpath('//div[@class="infoblok consortiumleden"]/div[@class="content"]/ul/li'):
-            p = {}
-            p['role'] = 'participant'
-            if li.xpath('a'):
-                p['name'] = li.xpath('a/text()').get()
-                p['url'] = li.xpath('a/@href').get()
-            else:
-                p['name'] = li.xpath('text()').get().strip()
-            participants.append(p)
+        el = response.xpath('//div[@class="infoblok consortiumleden"]/div[@class="content"]')
+        if el:
+            for li in el.xpath('ul/li'):
+                p = {}
+                p['role'] = 'participant'
+                if li.xpath('a'):
+                    p['name'] = li.xpath('a/text()').get()
+                    p['url'] = li.xpath('a/@href').get()
+                else:
+                    p['name'] = li.xpath('text()').get().strip()
+                participants.append(p)
 
-        for li in response.xpath('//div[@class="infoblok netwerkleden"]/div[@class="content"]/ul/li'):
-            p = {}
-            p['role'] = 'network-member'
-            if li.xpath('a'):
-                p['name'] = li.xpath('a/text()').get()
-                p['url'] = li.xpath('a/@href').get()
-            else:
-                p['name'] = li.xpath('text()').get().strip()
-            participants.append(p)
+        el = response.xpath('//div[@class="infoblok netwerkleden"]/div[@class="content"]')
+        if el:
+            for li in el.xpath('ul/li'):
+                p = {}
+                p['role'] = 'network-member'
+                if li.xpath('a'):
+                    p['name'] = li.xpath('a/text()').get()
+                    p['url'] = li.xpath('a/@href').get()
+                else:
+                    p['name'] = li.xpath('text()').get().strip()
+                participants.append(p)
 
         yield {
             "url": url,
