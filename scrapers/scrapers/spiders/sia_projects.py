@@ -9,7 +9,9 @@ class SiaProjectsSpider(scrapy.Spider):
     async def start(self):
         url = "https://www.sia-projecten.nl/project/tpc-c-duurzaam-hergebruik-van-thermoplastische-composiet-materialen"
         url = "https://www.sia-projecten.nl/project/observe"
-        yield scrapy.Request(url=url, callback=self.parse)
+        url = "https://www.sia-projecten.nl/zoek?page=0"
+        # TODO: edge cases: https://www.sia-projecten.nl/project/backseat-buddy https://www.sia-projecten.nl/project/waterlab
+        yield scrapy.Request(url=url, callback=self.parse_overview)
 
     def parse_date(self, date):
         month_map = {
@@ -22,10 +24,19 @@ class SiaProjectsSpider(scrapy.Spider):
         y = int(p[2])
         return datetime(y,m,d).date()
 
-    def parse(self, response):
+    def parse_overview(self, response):
+        curpage = int(response.url.split("=")[-1])
+        for a in response.xpath('//div[@class="view-project dm-teaser"]/div[@class="cardheader"]/h2/a/@href'):
+            yield scrapy.Request(url=response.urljoin(a.get()), callback=self.parse_project)
+        maxpage = response.xpath('//li[@class="pager__item summary"]/text()').get()
+        maxpage = int(maxpage.split("/")[-1].strip())-1 # Pages start at 0
+        if curpage != maxpage:
+            url = response.urljoin(f'zoek?page={curpage+1}')
+            yield scrapy.Request(url=url, callback=self.parse_overview)
+
+    def parse_project(self, response):
         url = response.url
         title = response.css("h1::text").get()
-        print("-----HALSJFALSJFKLASJFKLASJF---")
         projectID = response.xpath('//table/tr[th/text()="Dossier"]/td/text()').get()
         status = response.xpath('//table/tr[th/text()="Status"]/td/text()').get()
         paymentAmount = response.xpath('//table/tr[th/text()="Subsidie"]/td/text()').get()
@@ -36,9 +47,17 @@ class SiaProjectsSpider(scrapy.Spider):
         fundingScheme = response.xpath('//table/tr[th/text()="Regeling"]/td/text()').get()
 
         contact = {}
-        contact['org'] = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="hogeschool"]/span/text()').get().strip()
-        contact['name'] = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="contactpersoon"]/a/text()').get()
-        contact['email'] = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="contactpersoon"]/a/@data-meel').get().replace('|', '@')
+        el = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="hogeschool"]/span')
+        if el.xpath('/a'):
+            contact['org'] = el.xpath('a/text()').get().strip()
+            contact['org_url'] = el.xpath('a/@href').get()
+        else:
+            contact['org'] = el.xpath('text()').get().strip()
+
+        el = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="contactpersoon"]')
+        if el:
+            contact['name'] = el.xpath('a/text()').get()
+            contact['email'] = el.xpath('a/@data-meel').get().replace('|', '@')
 
         participants = []
         for li in response.xpath('//div[@class="infoblok consortiumleden"]/div[@class="content"]/ul/li'):
