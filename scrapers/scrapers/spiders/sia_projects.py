@@ -1,12 +1,20 @@
 import scrapy
 import json
 from datetime import datetime
+from markdownify import markdownify as md
+import re
 
 
 class SiaProjectsSpider(scrapy.Spider):
     name = "siaProjects"
 
+
     async def start(self):
+        self.month_map = {
+            'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
+            'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
+            'september': 9, 'oktober': 10, 'november': 11, 'december': 12}
+
         url = "https://www.sia-projecten.nl/project/tpc-c-duurzaam-hergebruik-van-thermoplastische-composiet-materialen"
         url = "https://www.sia-projecten.nl/project/observe"
         url = "https://www.sia-projecten.nl/zoek?page=0"
@@ -14,13 +22,9 @@ class SiaProjectsSpider(scrapy.Spider):
         yield scrapy.Request(url=url, callback=self.parse_overview)
 
     def parse_date(self, date):
-        month_map = {
-            'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
-            'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
-            'september': 9, 'oktober': 10, 'november': 11, 'december': 12}
         p = date.split(" ")
         d = int(p[0])
-        m = month_map[p[1]]
+        m = self.month_map[p[1]]
         y = int(p[2])
         return datetime(y,m,d).date()
 
@@ -39,7 +43,13 @@ class SiaProjectsSpider(scrapy.Spider):
         title = response.css("h1::text").get()
         projectID = response.xpath('//table/tr[th/text()="Dossier"]/td/text()').get()
         status = response.xpath('//table/tr[th/text()="Status"]/td/text()').get()
-        paymentAmount = response.xpath('//table/tr[th/text()="Subsidie"]/td/text()').get()
+
+        try:
+            paymentAmount = response.xpath('//table/tr[th/text()="Subsidie"]/td/text()').get()
+            paymentAmount = int(''.join(re.findall(r'\d', paymentAmount)))
+        except:
+            paymentAmount = None
+
         try:
             startDate = response.xpath('//table/tr[th/text()="Startdatum"]/td/text()').get()
             startDate = self.parse_date(startDate)
@@ -53,20 +63,29 @@ class SiaProjectsSpider(scrapy.Spider):
             endDate = None
         fundingScheme = response.xpath('//table/tr[th/text()="Regeling"]/td/text()').get()
 
-        contact = {}
+        participants = []
+        # Contact organisation
         el = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="hogeschool"]/span')
+        p = {}
+        p['role'] = 'contact-organisation'
         if el.xpath('a'):
-            contact['org'] = el.xpath('a/text()').get().strip()
-            contact['org_url'] = el.xpath('a/@href').get()
+            p['name'] = el.xpath('a/text()').get().strip()
+            p['url'] = el.xpath('a/@href').get()
+            participants.append(p)
         else:
-            contact['org'] = el.xpath('text()').get().strip()
+            p['name'] = el.xpath('text()').get().strip()
+            participants.append(p)
 
+        # Contact person
         el = response.xpath('//div[@class="infoblok contactinformatie"]/div/p[@class="contactpersoon"]')
         if el:
-            contact['name'] = el.xpath('a/text()').get()
-            contact['email'] = el.xpath('a/@data-meel').get().replace('|', '@')
+            p = {}
+            p['role'] = 'contact-person'
+            p['name'] = el.xpath('a/text()').get()
+            p['email'] = el.xpath('a/@data-meel').get().replace('|', '@')
+            participants.append(p)
 
-        participants = []
+        # Consortium members
         el = response.xpath('//div[@class="infoblok consortiumleden"]/div[@class="content"]')
         if el:
             for li in el.xpath('ul/li'):
@@ -79,6 +98,7 @@ class SiaProjectsSpider(scrapy.Spider):
                     p['name'] = li.xpath('text()').get().strip()
                 participants.append(p)
 
+        # Network members
         el = response.xpath('//div[@class="infoblok netwerkleden"]/div[@class="content"]')
         if el:
             for li in el.xpath('ul/li'):
@@ -91,6 +111,13 @@ class SiaProjectsSpider(scrapy.Spider):
                     p['name'] = li.xpath('text()').get().strip()
                 participants.append(p)
 
+        # Description
+        try:
+            el = response.xpath('//div[@class="col-12 col-md-8"]/*[not(self::table[@class="table-borderless table-responsive"])]')
+            description = md(''.join(el.getall()))
+        except:
+            description = ""
+
         yield {
             "url": url,
             "title": title,
@@ -100,6 +127,6 @@ class SiaProjectsSpider(scrapy.Spider):
             "startDate": startDate,
             "endDate": endDate,
             "fundingScheme": fundingScheme,
-            "contact": contact,
-            "participants": participants
+            "participants": participants,
+            "description": description
         }

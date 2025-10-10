@@ -57,6 +57,9 @@ class SaxResearchersSpider(scrapy.Spider):
             email = email[7:]
         # TODO: format LinkedIn URL to get identifier part only
         linkedin = response.css('a.researcher__info__link--linkedin::attr(href)').get()
+        if linkedin:
+            linkedin = re.findall(r'/in/.*/', linkedin)
+            linkedin = linkedin.split('/')[2]
         yield {
             "name": name,
             "lectoraat": lectoraat,
