@@ -15,6 +15,11 @@ CONSTRUCT {
   } UNION {
     ?uas wdt:P31 wd:Q3918 . # is a university
     ?uas wdt:P17 wd:Q55 . # country Netherlands
+  } UNION {
+    ?uas wdt:P31 wd:Q31855 . # is a research institute
+    ?uas wdt:P17 wd:Q55 . # country Netherlands
+  } UNION {
+    BIND(wd:Q50037936 AS ?uas)
   }
   OPTIONAL { ?uas wdt:P856 ?webSite . } # Official website
   ?uas rdfs:label ?name .
