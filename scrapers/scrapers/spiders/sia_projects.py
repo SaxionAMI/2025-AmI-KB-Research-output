@@ -70,7 +70,7 @@ class SiaProjectsSpider(scrapy.Spider):
         p['role'] = 'contact-organisation'
         if el.xpath('a'):
             p['name'] = el.xpath('a/text()').get().strip()
-            p['url'] = el.xpath('a/@href').get()
+            p['url'] = el.xpath('a/@href').get().strip()
             participants.append(p)
         else:
             p['name'] = el.xpath('text()').get().strip()
@@ -81,7 +81,7 @@ class SiaProjectsSpider(scrapy.Spider):
         if el:
             p = {}
             p['role'] = 'contact-person'
-            p['name'] = el.xpath('a/text()').get()
+            p['name'] = el.xpath('a/text()').get().strip()
             p['email'] = el.xpath('a/@data-meel').get().replace('|', '@')
             participants.append(p)
 
@@ -92,8 +92,8 @@ class SiaProjectsSpider(scrapy.Spider):
                 p = {}
                 p['role'] = 'participant'
                 if li.xpath('a'):
-                    p['name'] = li.xpath('a/text()').get()
-                    p['url'] = li.xpath('a/@href').get()
+                    p['name'] = li.xpath('a/text()').get().strip()
+                    p['url'] = li.xpath('a/@href').get().strip()
                 else:
                     p['name'] = li.xpath('text()').get().strip()
                 participants.append(p)
@@ -105,8 +105,8 @@ class SiaProjectsSpider(scrapy.Spider):
                 p = {}
                 p['role'] = 'network-member'
                 if li.xpath('a'):
-                    p['name'] = li.xpath('a/text()').get()
-                    p['url'] = li.xpath('a/@href').get()
+                    p['name'] = li.xpath('a/text()').get().strip()
+                    p['url'] = li.xpath('a/@href').get().strip()
                 else:
                     p['name'] = li.xpath('text()').get().strip()
                 participants.append(p)
