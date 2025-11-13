@@ -1,0 +1,101 @@
+# This query return EFRO projects
+# curl -H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0" -H "Accept: text/turtle" --data-urlencode query@eulod3.rq https://query.linkedopendata.eu/sparql -o result3.ttl
+# ./jena/apache-jena-5.5.0/bin/riot --formatted=turtle result3.ttl > mooi
+PREFIX eurio: <http://data.europa.eu/s66#>
+CONSTRUCT {
+  ?proj a eurio:Project .
+  ?proj eurio:title ?proj_name .
+  ?proj eurio:title ?proj_name_NL .
+  ?proj eurio:identifier ?identifier .
+  ?proj eurio:abstract ?abstract .
+  ?proj eurio:abstract ?abstract_NL .
+  ?proj eurio:startDate ?startDate .
+  ?proj eurio:endDate ?endDate .
+  ?proj eurio:hasInvolvedParty [
+    a eurio:OrganisationRole ;
+    eurio:roleLabel "participant" ;
+    eurio:isRoleOf ?benef
+  ] .
+
+  ?fundScheme a eurio:FundingScheme .
+  ?fundScheme eurio:title ?fundScheme_name .
+  ?fundScheme eurio:isImplementedBy <http://www.wikidata.org/entity/Q8880> . # European Commision
+
+  ?proj eurio:isFundedBy ?grantNode .
+
+  ?grantNode a eurio:Grant;
+    eurio:hasFundingScheme ?fundScheme;
+    eurio:hasFundingAmount ?amountNode .
+
+  ?amountNode a eurio:MonetaryAmount;
+      eurio:value ?fundAmount;
+      eurio:currency "EUR" .
+
+  ?benef a eurio:Organisation ;
+    rdfs:label ?benef_name ;
+    rdfs:label ?orgwd_name ;
+    eurio:identifier ?kvk ;
+    owl:sameAs ?orgwd .
+}
+WHERE {
+    #"38024938" ^(wdt:P486462|wdt:P617428)/^wdt:P889 ?proj. # beneficiary has (Netherlands registration ID  OR KvK company ID) 38024938 (Saxion)
+    VALUES ?proj {
+        wd:Q3989242 #2017 E-PLM 2.0 (Extended Product Lifecycle Management 2.0)
+        wd:Q3989191 #2017 More — SMEs and Cybersecurity in Smart Industry: Realising Revenues
+        wd:Q3989234 #2017 KIC — Artworks in Control
+        wd:Q3989300 #2018 Monitoring animal behaviour, animal health and animal welfare (x3D)
+        wd:Q3989322 #2019 Flywheel technology for energy storage in microgrids
+        wd:Q3989334 #2020 Instantaneous montoring and coaching of movement and balance in physiotherapy
+        wd:Q3989313 #2020 Expressure-1
+    }
+
+    ?proj rdfs:label ?proj_name .
+    ?proj wdt:P491100|wdt:P562941 ?identifier .
+    ?proj wdt:P836 ?abstract .
+
+    ?proj wdt:P20 ?startDateTime .
+    BIND(STRDT(SUBSTR(STR(?startDateTime), 1, 10), xsd:date) AS ?startDate)
+    ?proj wdt:P33 ?endDateTime .
+    BIND(STRDT(SUBSTR(STR(?endDateTime), 1, 10), xsd:date) AS ?endDate)
+
+    ?proj wdt:P1368 ?fundScheme .
+    ?fundScheme rdfs:label ?fundScheme_name .
+    ?proj wdt:P835 ?fundAmount .
+
+    ?proj wdt:P889 ?benef .
+
+    # We use this, otherwise a cross-product occurs somewhere, resulting in multiple identical blind nodes for the funding
+    BIND(BNODE(CONCAT("grant-", STR(?identifier))) AS ?grantNode)
+    BIND(BNODE(CONCAT("amount-", STR(?identifier))) AS ?amountNode)
+
+    FILTER(LANG(?proj_name) = 'en')
+    FILTER(LANG(?abstract) = 'en')
+    FILTER(LANG(?fundScheme_name) = 'en')
+    OPTIONAL {
+        #"38024938" ^(wdt:P617428|wdt:P486462)/^wdt:P889 ?proj .
+        #?proj wdt:P889 ?benef .
+        ?benef (wdt:P486462|wdt:P617428) ?kvk .
+        OPTIONAL {
+            SERVICE <https://query.wikidata.org/sparql> {
+              ?orgwd <http://www.wikidata.org/prop/direct/P3220> ?kvk .
+              ?orgwd rdfs:label ?orgwd_name .
+              FILTER(LANG(?orgwd_name) = 'en')
+            }
+        }
+    }
+    OPTIONAL {
+      #"38024938" ^(wdt:P617428|wdt:P486462)/^wdt:P889 ?proj .
+      #?proj wdt:P889 ?benef .
+      ?benef rdfs:label ?benef_name .
+      #VALUES  ?lang { 'en' 'nl' }
+      FILTER(LANG(?benef_name) = 'en')
+    }
+    # Dutch labels for project and abstract
+    OPTIONAL {
+      #"38024938" ^(wdt:P486462|wdt:P617428)/^wdt:P889 ?proj. # beneficiary has (Netherlands registration ID  OR KvK company ID) 38024938 (Saxion)
+      ?proj rdfs:label ?proj_name_NL .
+      ?proj wdt:P836 ?abstract_NL .
+      FILTER(LANG(?proj_name_NL) = 'nl')
+      FILTER(LANG(?abstract_NL) = 'nl')
+    }
+}

@@ -32,10 +32,15 @@ class NWOapiProjectsSpider(scrapy.Spider):
             # Ignore some funding schemes
             if any(fIgnore in fundingScheme for fIgnore in self.ignore_funding):
                 continue
+            # TODO: convert to yyyy-mm-dd date format
             try:
                 startDate = datetime.fromisoformat(p['start_date'])
             except:
                 startDate = None
+            try:
+                endDate = datetime.fromisoformat(p['end_date'])
+            except:
+                endDate = None
             title = p['title']
             projectID = p['project_id']
             try:
@@ -91,12 +96,13 @@ class NWOapiProjectsSpider(scrapy.Spider):
                 participants.append(part)
 
 
+            # TODO: convert to dict with projectID as key
             yield {
                 "title": title,
                 "projectID": projectID,
                 "doi": doi,
                 "startDate": startDate,
-                "endDate": startDate,
+                "endDate": endDate,
                 "fundingScheme": fundingScheme,
                 "paymentAmount": paymentAmount,
                 "summaryNL": summary_nl,

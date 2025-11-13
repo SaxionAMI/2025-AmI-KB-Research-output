@@ -1,5 +1,6 @@
 import scrapy
 import json
+import re
 
 
 class SaxResearchersSpider(scrapy.Spider):
@@ -15,6 +16,7 @@ class SaxResearchersSpider(scrapy.Spider):
                       'mr. ',
                       ', BSc',
                       ', MSc',
+                      ' MSc',
                       ', MSc, MA',
                       ', MBA',
                       ', MA',
@@ -58,8 +60,11 @@ class SaxResearchersSpider(scrapy.Spider):
         # TODO: format LinkedIn URL to get identifier part only
         linkedin = response.css('a.researcher__info__link--linkedin::attr(href)').get()
         if linkedin:
-            linkedin = re.findall(r'/in/.*/', linkedin)
-            linkedin = linkedin.split('/')[2]
+            linkedin = re.findall(r'/in/[^/]*', linkedin)
+            if linkedin:
+                linkedin = linkedin[0].split('/')
+            else:
+                linkedin = None
         yield {
             "name": name,
             "lectoraat": lectoraat,
