@@ -1,0 +1,44 @@
+# curl -H "Accept: text/turtle" --data-urlencode query@cordis.rq https://cordis.europa.eu/datalab/sparql -o cordis.ttl
+# ../jena/apache-jena-5.5.0/bin/riot -formatted=turtle cordis.ttl > cordis-pretty.ttl
+PREFIX eurio: <http://data.europa.eu/s66#>
+CONSTRUCT {
+  ?proj a eurio:Project ;
+  	eurio:title ?title ;
+    eurio:abstract ?abstract ;
+  	eurio:identifier ?identifier ;
+    eurio:startDate ?startDate ;
+    eurio:endDate ?endDate .
+  
+  ?proj eurio:isFundedBy ?grant .
+  ?grant eurio:hasFundingAmount ?fam .
+  ?fam eurio:value ?famValue .
+  ?fam eurio:currency ?famCurrency .  
+  ?grant eurio:isDisbursedBy <http://www.wikidata.org/entity/Q8880> . # European Commision
+  
+  ?proj eurio:hasInvolvedParty ?party .  
+  ?party eurio:roleLabel ?roleLabel ;
+         eurio:isRoleOf ?org .
+  
+  ?org eurio:legalName ?orgName . 
+}
+WHERE {
+  BIND(<http://data.europa.eu/s66/resource/organisations/4be1daa1-72db-33fa-8dea-4b245d6789b9> as ?saxion)
+  #BIND(<http://data.europa.eu/s66/resource/projects/eb697b94-eda3-3713-8026-045de64fdd3e> as ?proj) #useful for debugging. stick to one project
+ 
+  ?proj eurio:hasInvolvedParty/eurio:isRoleOf ?saxion ;
+  	eurio:title ?title ;
+    eurio:abstract ?abstract ;
+  	eurio:identifier ?identifier ;
+    eurio:startDate ?startDate ;
+    eurio:endDate ?endDate .
+  
+  ?proj eurio:isFundedBy ?grant .
+  ?grant eurio:hasFundingAmount ?fam .
+  ?fam eurio:value ?famValue .
+  ?fam eurio:currency ?famCurrency .
+  ?proj eurio:hasInvolvedParty ?party .  
+  ?party eurio:roleLabel ?roleLabel ;
+         eurio:isRoleOf ?org .
+  
+  ?org eurio:legalName ?orgName .
+}

@@ -6,7 +6,7 @@ import re
 
 
 class SiaProjectsSpider(scrapy.Spider):
-    name = "siaProjects"
+    name = "SIAwebsite"
 
 
     async def start(self):

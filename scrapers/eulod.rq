@@ -26,6 +26,7 @@ CONSTRUCT {
   ?grantNode a eurio:Grant;
     eurio:hasFundingScheme ?fundScheme;
     eurio:hasFundingAmount ?amountNode .
+    eurio:isDisbursedBy <http://www.wikidata.org/entity/Q8880> . # European Commision
 
   ?amountNode a eurio:MonetaryAmount;
       eurio:value ?fundAmount;

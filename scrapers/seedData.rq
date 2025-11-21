@@ -1,10 +1,13 @@
 # curl -H "Accept: text/turtle" --data-urlencode query@seedData.rq https://query.wikidata.org/sparql -o seeddata.ttl
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX eurio: <http://data.europa.eu/s66#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 CONSTRUCT {
   ?uas a eurio:Organisation .
+  ?uas rdfs:label ?name .
   ?uas eurio:legalName ?name .
   ?uas skos:altLabel ?altName .
-  ?uas eurio:hasSite ?webSite .
+  ?uas eurio:hasSite ?webSiteURL .
 } WHERE {
   {
     ?uas wdt:P463 wd:Q2688654 . # member of Vereniging Hogescholen
@@ -24,12 +27,17 @@ CONSTRUCT {
                 }
   }
   ?uas rdfs:label ?name .
-  OPTIONAL { ?uas wdt:P856 ?webSite . } # Official website
+  FILTER ( lang(?name) in ("en","nl", "mul") )
+  # Note: the mul is the default language
   OPTIONAL {
     ?uas skos:altLabel ?altName .
     FILTER ( lang(?altName) in ("en","nl", "mul") )
   }
-  # Note: the mul is the default language
-  FILTER ( lang(?name) in ("en","nl", "mul") )
+  # Official website
+  OPTIONAL {
+    #TODO: in wikidata.org website has lang tag. Filter on this!
+    ?uas wdt:P856 ?webSite .
+    BIND(STRDT(STR(?webSite), xsd:anyURI) AS ?webSiteURL)
+  }
   #TODO: official name prop.
 }
