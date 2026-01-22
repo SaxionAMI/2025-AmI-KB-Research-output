@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "fundingOrgAgency": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The name of the organization or agency providing the funding to the research project."
+    },
+    "projectName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The name of the project this work is part of."
+    },
+    "resultType": {
+      "type": "array",
+      "description": "The type of research output.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ProjectPublication",
+          "JournalPaper",
+          "ProceedingsPaper",
+          "ThesisDissertation",
+          "Book",
+          "NonPeerReviewedPublication"
+        ]
+      }
+    },
+    "grantNumber": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The grant or project number associated with the funding."
+    }
+  },
+  "required": [
+    "fundingOrgAgency",
+    "projectName",
+    "resultType",
+    "grantNumber"
+  ]
+}

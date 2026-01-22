@@ -1,2 +1,5 @@
-__pycache__/
+**/__pycache__/
 scrapers/.scrapy/
+**/.env
+llm_pipeline/outputs
+.idea

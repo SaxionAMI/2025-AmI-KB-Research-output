@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Publication",
+  "description": "Schema for publication or research output metadata.",
+  "type": "object",
+  "properties": {
+    "abstract": {
+      "description": "The abstract or summary of the work.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authors": {
+      "description": "A list of authors who contributed to the work.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The full name of the author.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "honorificTitle": {
+            "description": "The author's honorific title (e.g., Prof., Dr.).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "orcid": {
+            "description": "The author's ORCID identifier.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "affiliations": {
+            "description": "A list of affiliations for the author.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    "doi": {
+      "description": "The Digital Object Identifier (DOI) for the work.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fundingScheme": {
+      "description": "The name of the funding scheme (e.g., ERC, NWO).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "grantNumber": {
+      "description": "The grant or project number associated with the funding.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "isbn": {
+      "description": "The International Standard Book Number (ISBN).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issn": {
+      "description": "The International Standard Serial Number (ISSN).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "journalNumber": {
+      "description": "The issue or volume number of the journal.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "journalTitle": {
+      "description": "The title of the journal.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "keywords": {
+      "description": "A list of keywords related to the work.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "language": {
+      "description": "The primary language of the work (e.g., English).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "projectName": {
+      "description": "The name of the project this work is part of.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publishedPages": {
+      "description": "The page range of the publication (e.g., '1-15').",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publishedYear": {
+      "description": "The year the work was published.",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "publisher": {
+      "description": "The name of the publisher.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resultType": {
+      "description": "The type of research output.",
+      "type": "string",
+      "enum": [
+        "ProjectPublication",
+        "JournalPaper",
+        "ProceedingsPaper",
+        "ThesisDissertation",
+        "Book",
+        "NonPeerReviewedPublication"
+      ]
+    },
+    "title": {
+      "description": "The main title of the work.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "url": {
+      "description": "A URL pointing to the work (e.g., repository link, publisher page).",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
